@@ -1,6 +1,7 @@
 var jade = require('jade'),
 	connect = require('connect'),
 	meryl = require('meryl');
+	loki = require('./lib/lokiFunctions')
 
 //Declare Jade as template, check other supported templates at meryl
 //http://coffeemate.github.com/meryl/
@@ -19,10 +20,31 @@ meryl.p(
 
 //Home it says hello...
 meryl.h('GET /', function(req, resp){
-	resp.send('Hello, This is a Loki Shell, start develop');	
+	resp.render('layout',
+		{content: 'home', context: {people: ['Loki']}
+	});
 });
 
-//Render a Template name home, standar template example provided by meryl
+//Register form
+meryl.h('GET /register', function(req,resp){
+	resp.render('layout',
+		{content: 'register', context: {people: [req.params.yourname, 'alice', 'jane', 'meryl']}
+	});
+})
+
+//handles register
+meryl.h('POST /register', function(req, resp){
+	status = loki.registerUser(req, resp);
+	console.log('status is: '+status);
+})
+
+//handles login request
+meryl.h('POST /login', function(req, resp){
+	resp.headers['Content-Type'] = 'text/plain';
+	post = loki.parsePost(req.postdata);
+	resp.send(post.username +':'+ post.password);
+});
+
 //Check template documentation on http://jade-lang.com/
 meryl.h('GET /user/{yourname}?',function (req, resp) {
 	resp.render('layout',
