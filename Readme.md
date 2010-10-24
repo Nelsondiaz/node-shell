@@ -1,3 +1,7 @@
 Requires
 
-`npm install connect meryl jade`
+	npm install connect meryl jade
+
+Uses CouchDb
+
+
