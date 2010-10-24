@@ -3,7 +3,6 @@ var jade = require('jade'),
 	meryl = require('meryl');
 	loki = require('./lib/lokiFunctions')
 
-//Declare Jade as template, check other supported templates at meryl
 //http://coffeemate.github.com/meryl/
 var opts = {
   templateDir: 'templates',
@@ -13,16 +12,26 @@ var opts = {
   }
 };
 
-//Add Connect Static Provider
+//Add Connect Static Provider and Session from connect
+var memory = new connect.session.MemoryStore({ reapInterval: 60000, maxAge: 24 * 60 * 60000 });
+
 meryl.p(
-	connect.staticProvider()
+	connect.staticProvider(),
+    connect.cookieDecoder(),
+    connect.session({ store: memory, secret: 'foobar' })
 );
 
 //Home it says hello...
 meryl.h('GET /', function(req, resp){
-	resp.render('layout',
-		{content: 'home', context: {people: ['Loki']}
-	});
+	if(req.session.user){
+		resp.render('layout',
+			{content: 'home', context: {user: req.session.user, people: ['Loki']}
+		});		
+	}else{
+		resp.render('layout',
+			{content: 'home', context: {user: '',people: ['Loki']}
+		});		
+	}
 });
 
 //Register form
@@ -30,7 +39,7 @@ meryl.h('GET /register', function(req,resp){
 	resp.render('layout',
 		{content: 'register', context: {people: [req.params.yourname, 'alice', 'jane', 'meryl']}
 	});
-})
+});
 
 //handles register
 meryl.h('POST /register', function(req, resp){
@@ -39,11 +48,13 @@ meryl.h('POST /register', function(req, resp){
 })
 
 //handles login request
-meryl.h('POST /login', function(req, resp){
+meryl.h('POST /login', function(req,resp){loki.logInUserController(req,resp)}
+/*{
 	resp.headers['Content-Type'] = 'text/plain';
 	post = loki.parsePost(req.postdata);
 	resp.send(post.username +':'+ post.password);
-});
+}*/
+);
 
 //Check template documentation on http://jade-lang.com/
 meryl.h('GET /user/{yourname}?',function (req, resp) {
